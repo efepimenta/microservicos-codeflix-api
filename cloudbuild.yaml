@@ -8,7 +8,7 @@ steps:
             - --plaintext-file=./storage/credentials/google/gcredential.json
             - --location=global
             - --keyring=testing-lesson
-            - --key=service-account
+            - --key=service-account/1
 
     -   id: "rodando docker-compose"
         name: 'gcr.io/$PROJECT_ID/docker-compose:1.24.0'
