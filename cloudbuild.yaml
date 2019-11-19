@@ -1,0 +1,46 @@
+steps:
+    -   id: 'gerando service account'
+        name: 'gcr.io/cloud-builders/gcloud'
+        args:
+            - kms
+            - decrypt
+            - --ciphertext-file=./storage/credentials/google/gcredential.json.enc
+            - --plaintext-file=./storage/credentials/google/gcredential.json
+            - --location=global
+            - --keyring=testing-lesson
+            - --key=service-account
+
+    -   id: "rodando docker-compose"
+        name: 'gcr.io/$PROJECT_ID/docker-compose:1.24.0'
+        args: ['-f', 'docker-compose.prod.yaml', 'up', '-d']
+        env:
+            - GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID
+            - GOOGLE_CLOUD_KEY_FILE=gcredential.json
+            - GOOGLE_CLOUD_STORAGE_BUCKET=efepimenta-code-micro-videos
+            - GOOGLE_CLOUD_STORAGE_PATH_PREFIX=/
+            - GOOGLE_CLOUD_STORAGE_API_URI=https://storage.cloud.google.com/efepimenta-code-micro-videos
+            - TESTING_PROD=true
+
+    -   id: "rodando composer"
+        name: 'gcr.io/cloud-builders/docker'
+        args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
+
+    -   id: "copiando .env"
+        name: 'gcr.io/cloud-builders/docker'
+        args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.example', '.env']
+
+    -   id: "copiando .env-testing"
+        name: 'gcr.io/cloud-builders/docker'
+        args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.testing.example', '.env.testing']
+
+    -   id: "rodando key:generate-2"
+        name: 'gcr.io/cloud-builders/docker'
+        args: ['exec', '-t', 'micro-videos-app', 'php', 'artisan', 'key:generate']
+
+    -   id: "rodando migrations, migrando...."
+        name: 'gcr.io/cloud-builders/docker'
+        args: ['exec', '-t', 'micro-videos-app', 'php', 'artisan', 'migrate']
+
+    -   id: "rodando Phpunit"
+        name: 'gcr.io/cloud-builders/docker'
+        args: ['exec', '-t', 'micro-videos-app', 'php', '/var/www/vendor/bin/phpunit', '-c', '/var/www/phpunit.xml']
