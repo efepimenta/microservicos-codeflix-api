@@ -31,12 +31,12 @@ class VideoCrudTest extends BaseVideoTestCase
         $this->assertEqualsCanonicalizing(
             [
                 'id', 'title', 'description', 'year_launched', 'opened', 'rating', 'duration',
-                'created_at', 'updated_at', 'deleted_at', 'video_file', 'thumb_file'],
+                'created_at', 'updated_at', 'deleted_at', 'video_file', 'thumb_file', 'banner_file', 'trailer_file'],
             $keys
         );
     }
 
-    public function testCreateVideo()
+    public function testCreateWithBasicFields()
     {
         $video = Video::create([
             'title' => 'video de teste',
@@ -64,7 +64,7 @@ class VideoCrudTest extends BaseVideoTestCase
         $this->assertTrue(Uuid::isValid($video->id));
     }
 
-    public function testEditVideo()
+    public function testUpdateWithBasicFields()
     {
         $video = factory(Video::class)->create([
             'title' => 'video de teste',

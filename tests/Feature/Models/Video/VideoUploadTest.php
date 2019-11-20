@@ -19,10 +19,14 @@ class VideoUploadTest extends BaseVideoTestCase
             $this->videoExample + [
                 'thumb_file' => UploadedFile::fake()->image('thumb.jpg'),
                 'video_file' => UploadedFile::fake()->create('video.mp4'),
+                'banner_file' => UploadedFile::fake()->image('banner.png'),
+                'trailer_file' => UploadedFile::fake()->create('trailer.mp4'),
             ]
         );
         \Storage::assertExists("{$video->id}/{$video->thumb_file}");
         \Storage::assertExists("{$video->id}/{$video->video_file}");
+        \Storage::assertExists("{$video->id}/{$video->banner_file}");
+        \Storage::assertExists("{$video->id}/{$video->trailer_file}");
     }
 
     public function testDeleteFiles()
@@ -54,6 +58,8 @@ class VideoUploadTest extends BaseVideoTestCase
                 $this->videoExample + [
                     'thumb_file' => UploadedFile::fake()->image('thumb.jpg'),
                     'video_file' => UploadedFile::fake()->create('video.mp4'),
+                    'banner_file' => UploadedFile::fake()->create('banner.mp4'),
+                    'trailer_file' => UploadedFile::fake()->create('trailer.mp4'),
                 ]
             );
         } catch (TestException $e) {
@@ -84,12 +90,18 @@ class VideoUploadTest extends BaseVideoTestCase
         $video = Video::create($this->videoExample);
         $thumb_file = UploadedFile::fake()->image('thumb1.jpg');
         $video_file = UploadedFile::fake()->create('video2.mp4');
+        $banner_file = UploadedFile::fake()->create('banner.mp4');
+        $trailer_file = UploadedFile::fake()->create('trailer.mp4');
         $video->update($this->videoExample + [
                 'thumb_file' => $thumb_file,
                 'video_file' => $video_file,
+                'banner_file' => $banner_file,
+                'trailer_file' => $trailer_file,
             ]);
         \Storage::assertExists("{$video->id}/{$thumb_file->hashName()}");
         \Storage::assertExists("{$video->id}/{$video_file->hashName()}");
+        \Storage::assertExists("{$video->id}/{$banner_file->hashName()}");
+        \Storage::assertExists("{$video->id}/{$trailer_file->hashName()}");
 
         $new_video = UploadedFile::fake()->create('video3.mp4');
         $video->update($this->videoExample + [
@@ -97,6 +109,8 @@ class VideoUploadTest extends BaseVideoTestCase
             ]);
         \Storage::assertExists("{$video->id}/{$thumb_file->hashName()}");
         \Storage::assertMissing("{$video->id}/{$video_file->hashName()}");
+        \Storage::assertExists("{$video->id}/{$banner_file->hashName()}");
+        \Storage::assertExists("{$video->id}/{$trailer_file->hashName()}");
         \Storage::assertExists("{$video->id}/{$new_video->hashName()}");
     }
 

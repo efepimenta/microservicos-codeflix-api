@@ -15,7 +15,10 @@ class Video extends Model
 
     const RATING_LIST = ['L', '10', '12', '14', '16', '18'];
 
-    protected $fillable = ['title', 'description', 'year_launched', 'opened', 'rating', 'duration', 'video_file', 'thumb_file'];
+    protected $fillable = [
+        'title', 'description', 'year_launched', 'opened', 'rating', 'duration', 'video_file', 'thumb_file',
+        'banner_file', 'trailer_file'
+    ];
     protected $dates = ['deleted_at'];
     protected $casts = [
         'id' => 'string',
@@ -27,7 +30,7 @@ class Video extends Model
         'duration' => 'integer',
     ];
 
-    public static $fileFields = ['video_file', 'thumb_file'];
+    public static $fileFields = ['video_file', 'thumb_file', 'banner_file', 'trailer_file'];
 
     public $incrementing = false;
 

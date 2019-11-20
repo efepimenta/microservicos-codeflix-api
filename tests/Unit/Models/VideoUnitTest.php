@@ -23,13 +23,17 @@ class VideoUnitTest extends TestCase
     }
 
 
-    public function testIfClassIsModel(){
+    public function testIfClassIsModel()
+    {
         $this->assertInstanceOf(Model::class, new Video());
     }
 
     public function testFillable()
     {
-        $fillable = ['title', 'description', 'year_launched', 'opened', 'rating', 'duration', 'video_file', 'thumb_file'];
+        $fillable = [
+            'title', 'description', 'year_launched', 'opened', 'rating', 'duration', 'video_file', 'thumb_file',
+            'banner_file', 'trailer_file'
+        ];
         $this->assertEquals($fillable, $this->video->getFillable());
     }
 
@@ -61,7 +65,8 @@ class VideoUnitTest extends TestCase
         $this->assertFalse($this->video->getIncrementing());
     }
 
-    public function testIfUseTraits() {
+    public function testIfUseTraits()
+    {
         $traits = [
             Uuid::class, SoftDeletes::class, UploadFiles::class
         ];
