@@ -40,7 +40,7 @@ class VideoApiUploadTest extends BaseVideoApiTest
             new InvalidationTypes('video_file', 'mimetypes', ['values' => 'video/mp4']),
         ]);
 
-        $file = UploadedFile::fake()->create("teste.mp4")->size(5001);
+        $file = UploadedFile::fake()->create("teste.png")->size(Video::THUMB_FILE_MAX_SIZE + 1);
         $this->assertInvalidationInStoreAction(route('videos.store'), [
             'title' => 'test',
             'description' => 'test',
@@ -52,7 +52,7 @@ class VideoApiUploadTest extends BaseVideoApiTest
             'genres_id' => [$genre->id],
             'thumb_file' => $file
         ], [
-            new InvalidationTypes('thumb_file', 'max.file', ['max' => 5000]),
+            new InvalidationTypes('thumb_file', 'max.file', ['max' => Video::THUMB_FILE_MAX_SIZE]),
         ]);
     }
 
@@ -74,11 +74,11 @@ class VideoApiUploadTest extends BaseVideoApiTest
             new InvalidationTypes('video_file', 'mimetypes', ['values' => 'video/mp4']),
         ]);
 
-        $file = UploadedFile::fake()->create("teste.mp4")->size(50001);
+        $file = UploadedFile::fake()->create("teste.png")->size(Video::THUMB_FILE_MAX_SIZE + 1);
         $this->assertInvalidationInUpdateAction(route('videos.update', ['video' => $video->id]), [
             'thumb_file' => $file
         ], [
-            new InvalidationTypes('thumb_file', 'max.file', ['max' => 5000]),
+            new InvalidationTypes('thumb_file', 'max.file', ['max' => Video::THUMB_FILE_MAX_SIZE]),
         ]);
     }
 
