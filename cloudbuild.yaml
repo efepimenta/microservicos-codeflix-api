@@ -17,7 +17,6 @@ steps:
             - GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID
             - GOOGLE_CLOUD_KEY_FILE=gcredential.json
             - GOOGLE_CLOUD_STORAGE_BUCKET=efepimenta-code-micro-videos
-            - GOOGLE_CLOUD_STORAGE_PATH_PREFIX=/
             - GOOGLE_CLOUD_STORAGE_API_URI=https://storage.cloud.google.com/efepimenta-code-micro-videos
             - TESTING_PROD=true
 
