@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Http\Resources\CastMemberResource;
 use App\Models\CastMember;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Traits\TestApiResources;
 use Tests\Traits\TestValidations;
 use Tests\Types\InvalidationTypes;
 
@@ -15,7 +17,7 @@ class CastMemberApiTest extends TestCase
 
     use DatabaseMigrations;
 
-    use TestValidations;
+    use TestValidations, TestApiResources;
 
     protected function setUp(): void
     {
@@ -26,14 +28,29 @@ class CastMemberApiTest extends TestCase
     {
         $castMember = factory(CastMember::class)->create();
         $response = $this->get(route('cast_members.index'));
-        $this->assertOk($response, [$castMember->toArray()]);
+        $this->assertOk($response, ['data' => [$castMember->toArray()]]);
+
+        $response->assertJsonStructure([
+            'data' => [],
+            'links' => [],
+            'meta' => [],
+        ])->assertJson([
+            'meta' => ['per_page' => 15]
+        ]);
+        $resource = CastMemberResource::collection(collect([$castMember]));
+
+        $json = $resource->response();
+        $response->assertJson($json->getData(true));
     }
 
     public function testShow()
     {
         $castMember = factory(CastMember::class)->create();
         $response = $this->get(route('cast_members.show', ['cast_member' => $castMember->id]));
-        $this->assertOk($response, $castMember->toArray());
+        $this->assertOk($response, ['data' => $castMember->toArray()]);
+
+        $castMember = CastMember::find($response->json('data.id'));
+        $this->assertApiResource($response, CastMemberResource::class, $castMember);
     }
 
     public function testInvalidationData()
@@ -66,18 +83,19 @@ class CastMemberApiTest extends TestCase
             'name' => 'test',
             'type' => 1
         ]);
-        $castMember = CastMember::find($response->json('id'));
-        $this->assertOk($response, $castMember->toArray(), 201);
-        $this->assertTrue($response->json('is_active'));
-        $this->assertNull($response->json('description'));
+        $castMember = CastMember::find($response->json('data.id'));
+        $this->assertOk($response, ['data' => $castMember->toArray()], 201);
+        $this->assertTrue($response->json('data.is_active'));
+        $this->assertNull($response->json('data.description'));
+        $this->assertApiResource($response, CastMemberResource::class, $castMember);
 
         $response = $this->json('POST', route('cast_members.store'), [
             'name' => 'test',
             'is_active' => false,
             'type' => 2
         ]);
-        $this->assertFalse($response->json('is_active'));
-        $this->assertEquals(2, $response->json('type'));
+        $this->assertFalse($response->json('data.is_active'));
+        $this->assertEquals(2, $response->json('data.type'));
     }
 
     public function testUpdate()
@@ -92,13 +110,14 @@ class CastMemberApiTest extends TestCase
             'type' => 1,
             'is_active' => true,
         ]);
-        $castMember = CastMember::find($response->json('id'));
-        $this->assertOk($response, $castMember->toArray());
+        $castMember = CastMember::find($response->json('data.id'));
+        $this->assertOk($response, ['data' => $castMember->toArray()]);
         $response
             ->assertJsonFragment([
                 'is_active' => true,
                 'type' => 1
             ]);
+        $this->assertApiResource($response, CastMemberResource::class, $castMember);
     }
 
     public function testDelete()

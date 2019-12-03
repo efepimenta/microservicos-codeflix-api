@@ -3,6 +3,7 @@
 namespace Tests\Stubs\Controllers;
 
 use App\Http\Controllers\Api\BasicCrudController;
+use App\Http\Resources\CastMemberResource;
 use Tests\Stubs\Models\CastMemberStub;
 
 class CastMemberControllerStub extends BasicCrudController
@@ -20,5 +21,15 @@ class CastMemberControllerStub extends BasicCrudController
             'type' => 'required|max:1',
             'is_active' => 'boolean'
         ];
+    }
+
+    protected function resourceCollection()
+    {
+        return $this->resource();
+    }
+
+    protected function resource()
+    {
+        return CastMemberResource::class;
     }
 }

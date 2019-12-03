@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\GenreController;
+use App\Http\Resources\GenreResource;
 use App\Models\Category;
 use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
 use Tests\Exceptions\TestException;
 use Tests\TestCase;
+use Tests\Traits\TestApiResources;
 use Tests\Traits\TestValidations;
 use Tests\Types\InvalidationTypes;
 
@@ -18,20 +20,35 @@ class GenreApiTest extends TestCase
 
     use DatabaseMigrations;
 
-    use TestValidations;
+    use TestValidations, TestApiResources;
 
     public function testIndex()
     {
         $genre = factory(Genre::class)->create();
         $response = $this->get(route('genres.index'));
-        $this->assertOk($response, [$genre->toArray()]);
+        $this->assertOk($response, ['data' => [$genre->toArray()]]);
+
+        $response->assertJsonStructure([
+            'data' => [],
+            'links' => [],
+            'meta' => [],
+        ])->assertJson([
+            'meta' => ['per_page' => 15]
+        ]);
+        $resource = GenreResource::collection(collect([$genre]));
+
+        $json = $resource->response();
+        $response->assertJson($json->getData(true));
     }
 
     public function testShow()
     {
         $genre = factory(Genre::class)->create();
         $response = $this->get(route('genres.show', ['genre' => $genre->id]));
-        $this->assertOk($response, $genre->toArray());
+        $this->assertOk($response, ['data' => $genre->toArray()]);
+
+        $genre = Genre::find($response->json('data.id'));
+        $this->assertApiResource($response, GenreResource::class, $genre);
     }
 
     public function testInvalidationData()
@@ -66,21 +83,22 @@ class GenreApiTest extends TestCase
         $response = $this->json('POST', route('categories.store'), [
             'name' => 'test 1',
         ]);
-        $category = Category::find($response->json('id'));
+        $category = Category::find($response->json('data.id'));
         $response = $this->json('POST', route('genres.store'), [
             'name' => 'test',
             'categories_id' => [$category->id]
         ]);
-        $genre = Genre::find($response->json('id'));
-        $this->assertOk($response, $genre->toArray(), 201);
-        $this->assertTrue($response->json('is_active'));
+        $genre = Genre::find($response->json('data.id'));
+        $this->assertOk($response, ['data' => $genre->toArray()], 201);
+        $this->assertTrue($response->json('data.is_active'));
+        $this->assertApiResource($response, GenreResource::class, $genre);
 
         $response = $this->json('POST', route('genres.store'), [
             'name' => 'test',
             'is_active' => false,
             'categories_id' => [$category->id]
         ]);
-        $this->assertFalse($response->json('is_active'));
+        $this->assertFalse($response->json('data.is_active'));
     }
 
     public function testSyncCategories()
@@ -90,21 +108,21 @@ class GenreApiTest extends TestCase
         $response = $this->json('POST', route('genres.store'), $sendData);
         $this->assertDatabaseHas('category_genre', [
            'category_id' => $categoriesId[0],
-           'genre_id' => $response->json('id')
+           'genre_id' => $response->json('data.id')
         ]);
         $sendData = ['name' => 'test', 'categories_id' => [$categoriesId[1], $categoriesId[2]]];
-        $response = $this->json('PUT', route('genres.update', ['genre' =>$response->json('id')]), $sendData);
+        $response = $this->json('PUT', route('genres.update', ['genre' =>$response->json('data.id')]), $sendData);
         $this->assertDatabaseMissing('category_genre', [
             'category_id' => $categoriesId[0],
-            'genre_id' => $response->json('id')
+            'genre_id' => $response->json('data.id')
         ]);
         $this->assertDatabaseHas('category_genre', [
             'category_id' => $categoriesId[1],
-            'genre_id' => $response->json('id')
+            'genre_id' => $response->json('data.id')
         ]);
         $this->assertDatabaseHas('category_genre', [
             'category_id' => $categoriesId[2],
-            'genre_id' => $response->json('id')
+            'genre_id' => $response->json('data.id')
         ]);
     }
 
@@ -124,23 +142,24 @@ class GenreApiTest extends TestCase
         $response = $this->json('POST', route('categories.store'), [
             'name' => 'test 1',
         ]);
-        $category = Category::find($response->json('id'));
+        $category = Category::find($response->json('data.id'));
         $response = $this->json('POST', route('genres.store'), [
             'name' => 'test',
             'is_active' => false,
             'categories_id' => [$category->id]
         ]);
-        $genre = Genre::find($response->json('id'));
+        $genre = Genre::find($response->json('data.id'));
         $response = $this->json('PUT', route('genres.update', ['genre' => $genre->id]), [
             'name' => 'updating',
             'is_active' => true,
             'categories_id' => [$category->id]
         ]);
-        $genre = Genre::find($response->json('id'));
-        $this->assertOk($response, $genre->toArray());
+        $genre = Genre::find($response->json('data.id'));
+        $this->assertOk($response, ['data' => $genre->toArray()]);
         $response->assertJsonFragment([
             'is_active' => true
         ]);
+        $this->assertApiResource($response, GenreResource::class, $genre);
     }
 
     public function testUpdateWithTransactionFail()
@@ -148,12 +167,12 @@ class GenreApiTest extends TestCase
         $response = $this->json('POST', route('categories.store'), [
             'name' => 'test 1'
         ]);
-        $category = Category::find($response->json('id'));
+        $category = Category::find($response->json('data.id'));
         $response = $this->json('POST', route('genres.store'), [
             'name' => 'test 1',
             'categories_id' => [$category->id]
         ]);
-        $genre = Genre::find($response->json('id'));
+        $genre = Genre::find($response->json('data.id'));
         $controller = $this->makeObjectsForTransactionFailTests();
         $request = \Mockery::mock(Request::class);
         try {

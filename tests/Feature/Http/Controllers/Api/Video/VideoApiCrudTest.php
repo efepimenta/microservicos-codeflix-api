@@ -2,28 +2,47 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Http\Resources\VideoResource;
 use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
 use Illuminate\Database\QueryException;
 use Tests\Feature\Http\Controllers\Api\Video\BaseVideoApiTest;
+use Tests\Traits\TestApiResources;
 use Tests\Types\InvalidationTypes;
 
 class VideoApiCrudTest extends BaseVideoApiTest
 {
 
+    use TestApiResources;
+
     public function testIndex()
     {
         $video = factory(Video::class)->create();
         $response = $this->get(route('videos.index'));
-        $this->assertOk($response, [$video->toArray()]);
+        $this->assertOk($response, ['data' => [$video->toArray()]]);
+
+        $response->assertJsonStructure([
+            'data' => [],
+            'links' => [],
+            'meta' => [],
+        ])->assertJson([
+            'meta' => ['per_page' => 15]
+        ]);
+        $resource = VideoResource::collection(collect([$video]));
+
+        $json = $resource->response();
+        $response->assertJson($json->getData(true));
     }
 
     public function testShow()
     {
         $video = factory(Video::class)->create();
         $response = $this->get(route('videos.show', ['video' => $video->id]));
-        $this->assertOk($response, $video->toArray());
+        $this->assertOk($response, ['data' => $video->toArray()]);
+
+        $video = Video::find($response->json('data.id'));
+        $this->assertApiResource($response, VideoResource::class, $video);
     }
 
     public function testInvalidationData()
@@ -76,9 +95,10 @@ class VideoApiCrudTest extends BaseVideoApiTest
             'categories_id' => [$category->id],
             'genres_id' => [$genre->id],
         ]);
-        $video = Video::find($response->json('id'));
-        $this->assertOk($response, $video->toArray(), 201);
-        $this->assertTrue($response->json('opened'));
+        $video = Video::find($response->json('data.id'));
+        $this->assertOk($response, ['data' => $video->toArray()], 201);
+        $this->assertTrue($response->json('data.opened'));
+        $this->assertApiResource($response, VideoResource::class, $video);
 
         $response = $this->json('POST', route('videos.store'), [
             'title' => 'test',
@@ -90,7 +110,7 @@ class VideoApiCrudTest extends BaseVideoApiTest
             'categories_id' => [$category->id],
             'genres_id' => [$genre->id],
         ]);
-        $this->assertFalse($response->json('opened'));
+        $this->assertFalse($response->json('data.opened'));
     }
 
     public function testSyncCategories()
@@ -112,10 +132,10 @@ class VideoApiCrudTest extends BaseVideoApiTest
         $response = $this->json('POST', route('videos.store'), $sendData);
         $this->assertDatabaseHas('category_video', [
             'category_id' => $categoriesId[0],
-            'video_id' => $response->json('id')
+            'video_id' => $response->json('data.id')
         ]);
 
-        $response = $this->json('PUT', route('videos.update', ['video' => $response->json('id')]), ['title' => 'test',
+        $response = $this->json('PUT', route('videos.update', ['video' => $response->json('data.id')]), ['title' => 'test',
             'description' => 'test',
             'year_launched' => 2015,
             'rating' => Video::RATING_LIST[4],
@@ -126,15 +146,15 @@ class VideoApiCrudTest extends BaseVideoApiTest
         ]);
         $this->assertDatabaseMissing('category_video', [
             'category_id' => $categoriesId[0],
-            'video_id' => $response->json('id')
+            'video_id' => $response->json('data.id')
         ]);
         $this->assertDatabaseHas('category_video', [
             'category_id' => $categoriesId[1],
-            'video_id' => $response->json('id')
+            'video_id' => $response->json('data.id')
         ]);
         $this->assertDatabaseHas('category_video', [
             'category_id' => $categoriesId[2],
-            'video_id' => $response->json('id')
+            'video_id' => $response->json('data.id')
         ]);
     }
 
@@ -160,10 +180,10 @@ class VideoApiCrudTest extends BaseVideoApiTest
         $response = $this->json('POST', route('videos.store'), $sendData);
         $this->assertDatabaseHas('genre_video', [
             'genre_id' => $genresId[0],
-            'video_id' => $response->json('id')
+            'video_id' => $response->json('data.id')
         ]);
 
-        $response = $this->json('PUT', route('videos.update', ['video' => $response->json('id')]), ['title' => 'test',
+        $response = $this->json('PUT', route('videos.update', ['video' => $response->json('data.id')]), ['title' => 'test',
             'description' => 'test',
             'year_launched' => 2015,
             'rating' => Video::RATING_LIST[4],
@@ -174,15 +194,15 @@ class VideoApiCrudTest extends BaseVideoApiTest
         ]);
         $this->assertDatabaseMissing('genre_video', [
             'genre_id' => $genresId[0],
-            'video_id' => $response->json('id')
+            'video_id' => $response->json('data.id')
         ]);
         $this->assertDatabaseHas('genre_video', [
             'genre_id' => $genresId[1],
-            'video_id' => $response->json('id')
+            'video_id' => $response->json('data.id')
         ]);
         $this->assertDatabaseHas('genre_video', [
             'genre_id' => $genresId[2],
-            'video_id' => $response->json('id')
+            'video_id' => $response->json('data.id')
         ]);
     }
 
@@ -241,7 +261,7 @@ class VideoApiCrudTest extends BaseVideoApiTest
             'categories_id' => [$category_1->id],
             'genres_id' => [$genre_1->id],
         ]);
-        $video = Video::find($response->json('id'));
+        $video = Video::find($response->json('data.id'));
         $category_2 = factory(Category::class)->create([
             'name' => 'test 2'
         ]);
@@ -259,11 +279,12 @@ class VideoApiCrudTest extends BaseVideoApiTest
             'categories_id' => [$category_2->id],
             'genres_id' => [$genre_2->id],
         ]);
-        $video = Video::find($response->json('id'));
-        $this->assertOk($response, $video->toArray());
+        $video = Video::find($response->json('data.id'));
+        $this->assertOk($response, ['data' => $video->toArray()]);
         $response->assertJsonFragment([
             'opened' => true
         ]);
+        $this->assertApiResource($response, VideoResource::class, $video);
     }
 
     public function testDelete()

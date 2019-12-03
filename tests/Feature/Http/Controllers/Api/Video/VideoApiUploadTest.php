@@ -105,7 +105,7 @@ class VideoApiUploadTest extends BaseVideoApiTest
             'genres_id' => [$genre->id],
             'video_file' => $file,
         ]);
-        $video = Video::find($response->json('id'));
+        $video = Video::find($response->json('data.id'));
         \Storage::assertExists("{$video->id}/{$file->hashName()}");
     }
 

@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Traits\TestApiResources;
 use Tests\Traits\TestValidations;
 use Tests\Types\InvalidationTypes;
 
@@ -16,6 +18,7 @@ class CategoryApiTest extends TestCase
     use DatabaseMigrations;
 
     use TestValidations;
+    use TestApiResources;
 
     protected function setUp(): void
     {
@@ -26,14 +29,29 @@ class CategoryApiTest extends TestCase
     {
         $category = factory(Category::class)->create();
         $response = $this->get(route('categories.index'));
-        $this->assertOk($response, [$category->toArray()]);
+        $this->assertOk($response, ['data' => [$category->toArray()]]);
+
+        $response->assertJsonStructure([
+            'data' => [],
+            'links' => [],
+            'meta' => [],
+        ])->assertJson([
+            'meta' => ['per_page' => 15]
+        ]);
+        $resource = CategoryResource::collection(collect([$category]));
+
+        $json = $resource->response();
+        $response->assertJson($json->getData(true));
     }
 
     public function testShow()
     {
         $category = factory(Category::class)->create();
         $response = $this->get(route('categories.show', ['category' => $category->id]));
-        $this->assertOk($response, $category->toArray());
+        $this->assertOk($response, ['data' => $category->toArray()]);
+
+        $category = Category::find($response->json('data.id'));
+        $this->assertApiResource($response, CategoryResource::class, $category);
     }
 
     public function testInvalidationData()
@@ -65,18 +83,22 @@ class CategoryApiTest extends TestCase
         $response = $this->json('POST', route('categories.store'), [
             'name' => 'test 1'
         ]);
-        $category = Category::find($response->json('id'));
-        $this->assertOk($response, $category->toArray(), 201);
-        $this->assertTrue($response->json('is_active'));
-        $this->assertNull($response->json('description'));
-
+        /** @var Category $category */
+        $category = Category::find($response->json('data.id'));
+        $this->assertOk($response, ['data' => $category->toArray()], 201);
+        $this->assertTrue($response->json('data.is_active'));
+        $this->assertNull($response->json('data.description'));
+        $this->assertApiResource($response, CategoryResource::class, $category);
+//
         $response = $this->json('POST', route('categories.store'), [
             'name' => 'test 2',
             'is_active' => false,
             'description' => 'test'
         ]);
-        $this->assertFalse($response->json('is_active'));
-        $this->assertEquals('test', $response->json('description'));
+        $category = Category::find($response->json('data.id'));
+        $this->assertFalse($response->json('data.is_active'));
+        $this->assertEquals('test', $response->json('data.description'));
+        $this->assertApiResource($response, CategoryResource::class, $category);
     }
 
     public function testUpdate()
@@ -91,13 +113,14 @@ class CategoryApiTest extends TestCase
             'is_active' => true,
             'description' => 'updating'
         ]);
-        $category = Category::find($response->json('id'));
-        $this->assertOk($response, $category->toArray());
+        $category = Category::find($response->json('data.id'));
+        $this->assertOk($response, ['data' => $category->toArray()]);
         $response
             ->assertJsonFragment([
                 'description' => 'updating',
                 'is_active' => true
             ]);
+        $this->assertApiResource($response, CategoryResource::class, $category);
     }
 
     public function testDelete()
