@@ -22,7 +22,7 @@ steps:
 
     -   id: "rodando composer"
         name: 'gcr.io/cloud-builders/docker'
-        args: ['exec', '-t', 'micro-videos-app', 'composer', 'install', '-d', 'backend']
+        args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
 
     -   id: "copiando .env"
         name: 'gcr.io/cloud-builders/docker'
