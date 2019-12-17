@@ -3,9 +3,9 @@
 #On error no such file entrypoint.sh, execute in terminal - dos2unix .docker\entrypoint.sh
 
 npm config set cache /var/www/.npm-cache --global
-cd /var/www/frontend && npm install && cd ..
+cd /var/www/frontend && npm install
 
-cd backend
+cd /var/www/backend
 if [ ! -f .env.testing ]; then
   cp .env.testing.example .env.testing;
 fi
