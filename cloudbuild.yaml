@@ -42,4 +42,4 @@ steps:
 
     -   id: "rodando Phpunit"
         name: 'gcr.io/cloud-builders/docker'
-        args: ['exec', '-t', 'micro-videos-app', 'php', '/var/www/vendor/bin/phpunit', '-c', '/var/www/phpunit.xml']
+        args: ['exec', '-t', 'micro-videos-app', 'php', '/var/www/backend/vendor/bin/phpunit', '-c', '/var/www/backend/phpunit.xml']

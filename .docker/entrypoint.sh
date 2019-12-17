@@ -1,12 +1,20 @@
 #!/bin/bash
 
 #On error no such file entrypoint.sh, execute in terminal - dos2unix .docker\entrypoint.sh
-cp .env.testing.example .env.testing
-cp .env.example .env
-chmod 777 -R /var/www/storage
+
+npm config set cache /var/www/.npm-cache --global
+cd /var/www/frontend && npm install && cd ..
+
+cd backend
+if [ ! -f .env.testing ]; then
+  cp .env.testing.example .env.testing;
+fi
+if [ ! -f .env ]; then
+  cp .env.example .env;
+fi
+chmod 777 -R ./storage
 composer install
 php artisan key:generate
 php artisan migrate
-
 
 php-fpm
