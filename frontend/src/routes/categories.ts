@@ -1,4 +1,5 @@
 import {PageList as CategoryList} from "../pages/category/PageList";
+import {PageForm as CategoryForm} from "../pages/category/PageForm";
 import {MyRouteProps} from "./index";
 
 export const categoriesRoutes: MyRouteProps[] = [
@@ -13,7 +14,7 @@ export const categoriesRoutes: MyRouteProps[] = [
         name: 'categories.create',
         label: 'Criar Categoria',
         path: '/categories/create',
-        component: CategoryList,
+        component: CategoryForm,
         exact: true
     },
     {

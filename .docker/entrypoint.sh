@@ -5,7 +5,7 @@
 npm config set cache /var/www/.npm-cache --global
 cd /var/www/frontend && npm install
 
-cd /var/www/backend
+cd /var/www/backend || exit
 if [ ! -f .env.testing ]; then
   cp .env.testing.example .env.testing;
 fi

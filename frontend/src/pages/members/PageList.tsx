@@ -17,7 +17,7 @@ export const PageList: React.FC = (props: PageListProps) => {
                     title={'AdicionarMembro'}
                     size={'small'}
                     component={Link}
-                    to={'/castMembers/create'}>
+                    to={'/cast_members/create'}>
                     <AddIcon/>
                 </Fab>
             </Box>

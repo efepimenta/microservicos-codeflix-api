@@ -1,4 +1,5 @@
 import {PageList as MemberList} from "../pages/members/PageList";
+import {PageForm as MemberForm} from "../pages/members/PageForm";
 import {MyRouteProps} from "./index";
 
 export const castMembersroutes: MyRouteProps[] = [
@@ -13,7 +14,7 @@ export const castMembersroutes: MyRouteProps[] = [
         name: 'cast_members.create',
         label: 'Criar Membro',
         path: '/cast_members/create',
-        component: MemberList,
+        component: MemberForm,
         exact: true
     },
     {

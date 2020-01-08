@@ -4,12 +4,17 @@ import MUIDataTable, {MUIDataTableColumn} from "mui-datatables";
 import {httpVideo} from "../../util/http";
 import {format, parseISO} from 'date-fns';
 
+const CastMembersTypeMap = {
+  1: 'Diretor',
+  2: 'Ator'
+};
+
 const columnsDefinition: MUIDataTableColumn[] = [
     {label: 'Nome', name: 'name'},
     {
         label: 'Tipo', name: 'type', options: {
             customBodyRender(value, tableMeta, updateValue) {
-                return value === 1 ? <span>Diretor</span> : <span>Ator</span>;
+                return <span>{CastMembersTypeMap[value]}</span>;
             }
         }
     },

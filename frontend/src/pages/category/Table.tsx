@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import MUIDataTable, {MUIDataTableColumn} from "mui-datatables";
-import {httpVideo} from "../../util/http";
 import {Chip} from "@material-ui/core";
 import {format, parseISO} from 'date-fns';
+import categoryHttp from "../../util/http/category-http";
 
 const columnsDefinition: MUIDataTableColumn[] = [
     {label: 'Nome', name: 'name'},
@@ -25,12 +25,17 @@ const columnsDefinition: MUIDataTableColumn[] = [
 //     filterType: 'checkbox',
 // };
 
+interface Category {
+    id: string;
+    name: string;
+}
+
 type TableProps = {};
 export const Table: React.FC = (props: TableProps) => {
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<Category[]>([]);
     useEffect(() => {
-        httpVideo.get('categories').then(
+        categoryHttp.list<{data: Category[]}>().then(
             response => setData(response.data.data)
         )
     }, []);

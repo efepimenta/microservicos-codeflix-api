@@ -7,15 +7,15 @@ RUN docker-php-ext-configure gd --with-gd --with-freetype-dir=/usr/include/ --wi
     --with-png-dir=/usr/include/
 RUN docker-php-ext-install -j$(nproc) gd
 
-RUN touch /root/.bashrc | echo "PS1='\w\$'" >> /root/.bashrc
+RUN touch /root/.bashrc | echo "PS1='\w\$ '" >> /root/.bashrc
 
 ENV DOCKERIZE_VERSION v0.6.1
 RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
     && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
     && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
-WORKDIR /var/www/backend
-RUN rm -rf /var/www/backend/html
+WORKDIR /var/www/
+RUN rm -rf /var/www/html
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 

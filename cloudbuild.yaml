@@ -22,23 +22,23 @@ steps:
 
     -   id: "rodando composer"
         name: 'gcr.io/cloud-builders/docker'
-        args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
+        args: ['exec', '-t', 'micro-videos-app', 'composer', 'install', '-d', 'backend']
 
     -   id: "copiando .env"
         name: 'gcr.io/cloud-builders/docker'
-        args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.example', '.env']
+        args: ['exec', '-t', 'micro-videos-app', 'cp', 'backend/.env.example', 'backend/.env']
 
     -   id: "copiando .env-testing"
         name: 'gcr.io/cloud-builders/docker'
-        args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.testing.example', '.env.testing']
+        args: ['exec', '-t', 'micro-videos-app', 'cp', 'backend/.env.testing.example', 'backend/.env.testing']
 
     -   id: "rodando key:generate-2"
         name: 'gcr.io/cloud-builders/docker'
-        args: ['exec', '-t', 'micro-videos-app', 'php', 'artisan', 'key:generate']
+        args: ['exec', '-t', 'micro-videos-app', 'php', 'backend/artisan', 'key:generate']
 
     -   id: "rodando migrations, migrando...."
         name: 'gcr.io/cloud-builders/docker'
-        args: ['exec', '-t', 'micro-videos-app', 'php', 'artisan', 'migrate']
+        args: ['exec', '-t', 'micro-videos-app', 'php', 'backend/artisan', 'migrate']
 
     -   id: "rodando Phpunit"
         name: 'gcr.io/cloud-builders/docker'
